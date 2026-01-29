@@ -104,7 +104,7 @@ function Lobby() {
             <div className="flex justify-between items-start mb-4">
                <div>
                   <h1 className="text-4xl font-bold text-white tracking-tighter mb-1 relative inline-block">
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ea4f01] to-[#9D00FF]">VOID</span>_PROTOCOL
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#983b0c] to-[#162519]">VOID</span>_PROTOCOL
                   </h1>
                   <div className="text-[#00FFFF]/60 text-xs uppercase tracking-[0.2em] flex items-center gap-2 mt-1">
                     <span className="inline-block w-2 h-0.5 bg-[#ea4f01]"></span>

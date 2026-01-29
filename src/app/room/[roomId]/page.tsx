@@ -33,7 +33,7 @@ const RedactedLabel = ({ text, chance = 0.1 }: { text: string; chance?: number }
   }, [text, chance])
 
   return (
-    <span className={display !== text ? "text-[#9D00FF] bg-black/50 px-1" : ""}>
+    <span className={display !== text ? "text-[#9D00FF] bg-black/50 px-1 " : ""}>
       {display}
     </span>
   )
@@ -157,7 +157,7 @@ const Page = () => {
           <div className="col-span-8 md:col-span-5 bento-module group p-3 flex flex-col justify-between h-20 cursor-default">
             <span className="text-[9px] text-[#000080] font-bold group-hover:text-[#9D00FF] transition-colors">{useHash()}</span>
             <div>
-              <span className="text-xs text-[#1E3E62] block mb-1">TARGET_PROTOCOL</span>
+              <span className="text-xs text-[#00FFFF] block mb-1">TARGET_PROTOCOL</span>
               <div className="flex items-center justify-between">
                 <h1 className="text-[#FFFFFF] text-burn text-lg font-bold truncate tracking-widest">{roomId.slice(0,12)}</h1>
                 <button onClick={copyLink} className="text-[10px] text-[#00FFFF] hover:underline decoration-[#9D00FF] uppercase">[{copyStatus}]</button>
@@ -165,12 +165,12 @@ const Page = () => {
             </div>
           </div>
           <div className="col-span-4 md:col-span-3 bento-module p-3 flex flex-col justify-between h-20">
-            <span className="text-[9px] text-[#000080] font-bold">TTL_MONITOR</span>
+            <span className="text-[9px] text-[#00FFFF] font-bold">TTL_MONITOR</span>
             <div className="flex items-end gap-2">
               <span className={`text-2xl font-bold leading-none ${timeRemaining && timeRemaining<60 ? 'text-[#9D00FF] animate-pulse':'text-[#FFFFFF] text-burn'}`}>
                 {timeRemaining!==null ? formatTimeRemaining(timeRemaining) : "--:--"}
               </span>
-              <span className="text-[9px] text-[#1E3E62] mb-1">SEC</span>
+              <span className="text-[9px] text-[#ffffff] mb-1">SEC</span>
             </div>
           </div>
           <div className="col-span-12 md:col-span-4">
@@ -185,10 +185,10 @@ const Page = () => {
       {/* --- MESSAGE STREAM --- */}
       <div className="relative z-20 flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
         {messages?.messages.length===0 && (
-          <div className="flex items-center justify-center h-full opacity-40">
+          <div className="flex items-center justify-center h-full opacity-90">
             <div className="text-center space-y-2">
-              <div className="w-16 h-16 border border-[#000080] mx-auto flex items-center justify-center text-[#9D00FF] animate-spin">✣</div>
-              <p className="text-[#1E3E62] text-xs tracking-widest"><RedactedLabel text="SIGNAL_NOT_FOUND"/></p>
+              <div className="w-16 h-16 border border-[#06ec57] mx-auto flex items-center justify-center text-[#ff0000] animate-spin">✣</div>
+              <p className="text-[#00FFFF] text-xs tracking-widest"><RedactedLabel text="SIGNAL_NOT_FOUND"/></p>
             </div>
           </div>
         )}
@@ -234,18 +234,18 @@ const Page = () => {
             }}
             placeholder="ENTER_ENCRYPTED_PAYLOAD..."
             onChange={e => setInput(e.target.value)}
-            className="flex-1 bg-transparent border-none focus:ring-0 text-[#FFFFFF] placeholder-[#1E3E62] px-4 text-sm caret-[#00FFFF]"
+            className="flex-1 bg-transparent border-none focus:ring-0 text-[#FFFFFF] placeholder-[#036ae0] px-4 text-sm caret-[#00FFFF]"
             spellCheck={false}
           />
           <button
             onClick={() => {sendMessage({text:input}); inputRef.current?.focus()}}
             disabled={!input.trim() || isPending}
-            className="px-6 bg-[#000080]/20 hover:bg-[#9D00FF] text-[#00FFFF] hover:text-[#FFFFFF] text-xs font-bold tracking-[0.2em] transition-all disabled:opacity-30 disabled:cursor-not-allowed border-l border-[#000080]"
+            className="px-6 bg-[#000080]/20 hover:bg-[#9D00FF] text-[#00FFFF] hover:text-[#FFFFFF] text-xs font-bold tracking-[0.2em] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-l border-[#000080]"
           >
             TX_DATA
           </button>
         </div>
-        <div className="flex justify-between mt-3 px-1 text-[8px] text-[#1E3E62] uppercase tracking-widest font-bold">
+        <div className="flex justify-between mt-3 px-1 text-[8px] text-[#00FFFF] uppercase tracking-widest font-bold">
           <span>UPLINK: <RedactedLabel text="UNSTABLE" chance={0.3}/></span>
           <span>LATENCY: 42ms</span>
           <span><RedactedLabel text="AUTHORIZED_ONLY" chance={0.1}/></span>
