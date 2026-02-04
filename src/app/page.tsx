@@ -87,10 +87,10 @@ function Lobby() {
         
         {/* TOP STATUS BAR */}
         <div className="flex justify-between items-end mb-2 px-1">
-            <span className="text-[10px] text-[#9D00FF]/80 tracking-[0.2em] uppercase">
+            <span className="text-[10px] text-[#00FFFF] tracking-[0.2em] uppercase">
                 SECURE_CONNECTION_ESTABLISHED
             </span>
-            <span className="text-[10px] text-white/20 font-mono">
+            <span className="text-[10px] text-[#00FFFF] font-mono">
                 {hash}
             </span>
         </div>
@@ -106,7 +106,7 @@ function Lobby() {
                   <h1 className="text-4xl font-bold text-white tracking-tighter mb-1 relative inline-block">
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#983b0c] to-[#162519]">VOID</span>_PROTOCOL
                   </h1>
-                  <div className="text-[#00FFFF]/60 text-xs uppercase tracking-[0.2em] flex items-center gap-2 mt-1">
+                  <div className="text-[#00FFFF]/85 text-xs uppercase tracking-[0.2em] flex items-center gap-2 mt-1">
                     <span className="inline-block w-2 h-0.5 bg-[#ea4f01]"></span>
                     <RedactedLabel text="Encrypted Channel 01" chance={0.1} />
                   </div>
@@ -150,13 +150,13 @@ function Lobby() {
             
             {/* Identity Module */}
             <div className="space-y-2">
-                <label className="text-[10px] text-white/40 uppercase tracking-widest block pl-1">
+                <label className="text-[10px] text-white uppercase tracking-widest block pl-1">
                     Subject Identity
                 </label>
                 <div className="relative group">
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] rounded-sm opacity-20 group-hover:opacity-40 transition duration-500 blur-sm"></div>
                     <div className="relative bg-black border border-[#000080] p-4 flex items-center justify-between">
-                        <span className="text-lg text-white font-mono tracking-tight">
+                        <span className="text-lg text-green-400 hover:text-green-300 transition-colors du font-mono tracking-tight">
                             {username || <span className="animate-pulse opacity-50">INITIALIZING...</span>}
                         </span>
                         <div className="h-2 w-2 bg-[#00FFFF] animate-pulse rounded-full shadow-[0_0_10px_#00FFFF]" />
@@ -188,9 +188,9 @@ function Lobby() {
                     )}
                 </div>
                 </button>
-                <div className="flex justify-between mt-2 px-1 opacity-50">
-                    <span className="text-[8px] uppercase">Encryption: AES-256</span>
-                    <span className="text-[8px] uppercase">Latency: &lt;12ms</span>
+                <div className="flex justify-between mt-2 px-1 ">
+                    <span className="text-[9px] uppercase">Encryption: AES-256</span>
+                    <span className="text-[9px] uppercase">Latency: &lt;12ms</span>
                 </div>
             </div>
 
