@@ -36,7 +36,6 @@ const RedactedLabel = ({ text, chance = 0.1 }: { text: string; chance?: number }
 
 // --- COMPONENTS ---
 
-// New: A decorative corner bracket for that technical feel
 const CornerBrackets = () => (
   <>
     <div className="absolute top-0 left-0 w-3 h-3 border-l border-t border-[#00FFFF] opacity-50" />
@@ -76,16 +75,13 @@ function Lobby() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center p-6 bg-[#050505] font-mono selection:bg-[#9D00FF] selection:text-white text-[#00FFFF] overflow-hidden">
       
-      {/* --- BACKGROUND LAYERS --- */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
       <div className="absolute inset-0 void-gradient z-0 pointer-events-none" />
       <div className="absolute inset-0 digital-grain z-10 pointer-events-none opacity-30" />
       <div className="absolute inset-0 crt-scanline z-50 opacity-20 pointer-events-none mix-blend-overlay" />
 
-      {/* --- MAIN TERMINAL FRAME --- */}
       <div className="relative z-20 w-full max-w-lg">
         
-        {/* TOP STATUS BAR */}
         <div className="flex justify-between items-end mb-2 px-1">
             <span className="text-[10px] text-[#00FFFF] tracking-[0.2em] uppercase">
                 SECURE_CONNECTION_ESTABLISHED
@@ -95,11 +91,9 @@ function Lobby() {
             </span>
         </div>
 
-        {/* CONTAINER */}
         <div className="relative border border-[#000080] bg-[#050505]/90 backdrop-blur-sm shadow-[0_0_30px_-5px_rgba(157,0,255,0.15)]">
           <CornerBrackets />
           
-          {/* HEADER SECTION */}
           <div className="border-b border-[#000080] bg-white/[0.02] p-6 pb-4">
             <div className="flex justify-between items-start mb-4">
                <div>
@@ -118,7 +112,6 @@ function Lobby() {
             </div>
           </div>
 
-          {/* ALERTS SECTION (Conditional) */}
           {(wasDestroyed || error) && (
             <div className="border-b border-[#000080] bg-[#ea4f01]/5 p-4 relative overflow-hidden group">
                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#ea4f01] group-hover:w-1.5 transition-all" />
@@ -145,10 +138,7 @@ function Lobby() {
             </div>
           )}
 
-          {/* MAIN CONTENT AREA */}
           <div className="p-6 space-y-6">
-            
-            {/* Identity Module */}
             <div className="space-y-2">
                 <label className="text-[10px] text-white uppercase tracking-widest block pl-1">
                     Subject Identity
@@ -164,14 +154,12 @@ function Lobby() {
                 </div>
             </div>
 
-            {/* Action Module */}
             <div className="pt-2">
                 <button
                 onClick={() => createRoom()}
                 disabled={isPending}
                 className="group relative w-full overflow-hidden border border-[#00FFFF]/30 bg-[#00FFFF]/5 p-4 hover:border-[#00FFFF] hover:bg-[#00FFFF]/10 transition-all duration-300"
                 >
-                {/* Button Scanline */}
                 <div className="absolute inset-0 w-full h-full bg-[linear-gradient(to_bottom,transparent_0%,rgba(0,255,255,0.1)_50%,transparent_100%)] translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-1000 ease-in-out" />
                 
                 <div className="relative flex items-center justify-center gap-3">
@@ -193,18 +181,16 @@ function Lobby() {
                     <span className="text-[9px] uppercase">Latency: &lt;12ms</span>
                 </div>
             </div>
-
           </div>
         </div>
 
-        {/* FOOTER DECORATION */}
         <div className="mt-4 flex justify-center opacity-30">
             <div className="h-px w-24 bg-gradient-to-r from-transparent via-[#00FFFF] to-transparent" />
         </div>
       </div>
 
-      {/* --- GLOBAL STYLES (UPDATED) --- */}
-      <style jsx global>{`
+      {/* FIXED STYLE TAG */}
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&display=swap');
         
         body { 

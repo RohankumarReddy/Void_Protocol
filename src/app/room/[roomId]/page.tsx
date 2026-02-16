@@ -8,38 +8,18 @@ import { format } from "date-fns"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
-// --- CRYPTO-AESTHETIC UTILITIES ---
-// Safe hash generator after mount
-const useHash = () => {
-  const [hash, setHash] = useState("SHA-256: 00000000")
-  useEffect(() => {
-    setHash("SHA-256: " + Math.random().toString(16).substr(2, 8).toUpperCase())
-  }, [])
-  return hash
+// --- UTILS ---
+
+// deterministic hash generation to prevent hydration mismatch
+const getStableHash = (seed: string) => {
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i)
+    hash |= 0 // Convert to 32bit integer
+  }
+  return "0x" + Math.abs(hash).toString(16).toUpperCase().padStart(8, "0")
 }
 
-// Randomly redact text (safe, starts only after mount)
-const RedactedLabel = ({ text, chance = 0.1 }: { text: string; chance?: number }) => {
-  const [display, setDisplay] = useState(text)
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-        if (Math.random() < chance) {
-            setDisplay(Math.random() > 0.5 ? "[NULL]" : "[REDACTED]")
-            setTimeout(() => setDisplay(text), 150 + Math.random() * 500)
-        }
-    }, 2000 + Math.random() * 5000)
-    return () => clearInterval(interval)
-  }, [text, chance])
-
-  return (
-    <span className={display !== text ? "text-[#9D00FF] bg-black/50 px-1 " : ""}>
-      {display}
-    </span>
-  )
-}
-
-// Format seconds safely
 function formatTimeRemaining(seconds: number) {
   const mins = Math.floor(seconds / 60)
   const secs = seconds % 60
@@ -51,10 +31,21 @@ const Page = () => {
   const roomId = params.roomId as string
   const router = useRouter()
   const { username } = useUsername()
+
   const [input, setInput] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
+  
+  // Ref for auto-scrolling
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
   const [copyStatus, setCopyStatus] = useState("ENCRYPT_LINK")
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  
+  // Hydration safe random initialization
+  const [mountHash, setMountHash] = useState("INITIALIZING...")
+  useEffect(() => {
+    setMountHash("SHA-256: " + Math.random().toString(16).slice(2, 10).toUpperCase())
+  }, [])
 
   const { data: ttlData } = useQuery({
     queryKey: ["ttl", roomId],
@@ -74,6 +65,7 @@ const Page = () => {
       router.push("/?destroyed=true")
       return
     }
+
     const interval = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev === null || prev <= 1) {
@@ -83,6 +75,7 @@ const Page = () => {
         return prev - 1
       })
     }, 1000)
+
     return () => clearInterval(interval)
   }, [timeRemaining, router])
 
@@ -93,6 +86,16 @@ const Page = () => {
       return res.data
     },
   })
+
+  // --- AUTO SCROLL LOGIC ---
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  // Scroll when messages change
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const { mutate: sendMessage, isPending } = useMutation({
     mutationFn: async ({ text }: { text: string }) => {
@@ -124,133 +127,204 @@ const Page = () => {
   }
 
   return (
-    <main className="relative flex flex-col h-screen max-h-screen overflow-hidden bg-[#050505] text-[#1E3E62] selection:bg-[#9D00FF] selection:text-white font-mono tracking-tighter">
+    <main className="relative flex flex-col h-screen max-h-screen overflow-hidden bg-[#02040a] text-slate-300 font-mono tracking-tight selection:bg-[#00FFFF] selection:text-black">
       
-      {/* --- COBALT-VOID CSS ENGINE --- */}
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&display=swap');
-        body { font-family: 'Fira Code', monospace; letter-spacing: -0.5px; }
+      {/* --- CSS BACKGROUNDS (Safe) --- */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        .scanline {
+          background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+          background-size: 100% 4px;
+        }
+        .grid-bg {
+          background-size: 40px 40px;
+          background-image: linear-gradient(to right, rgba(30, 62, 98, 0.1) 1px, transparent 1px),
+                            linear-gradient(to bottom, rgba(30, 62, 98, 0.1) 1px, transparent 1px);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #1E3E62; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00FFFF; }
+      `}} />
 
-        .void-gradient { background: radial-gradient(circle at top right, #120124 0%, transparent 40%), radial-gradient(circle at bottom left, #120124 0%, transparent 40%); }
-        .digital-grain { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E"); }
-        .crt-scanline { background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06)); background-size: 100% 3px, 3px 100%; pointer-events: none; }
-
-        .bento-module { border: 1px solid #000080; background: rgba(5,5,5,0.6); backdrop-filter: blur(4px); transition: all 0.2s cubic-bezier(0.4,0,0.2,1); position: relative; }
-        .bento-module:hover { border-color: #9D00FF; background: rgba(5,5,5,0.8); box-shadow: 2px 2px 0px #9D00FF; }
-        .bento-module:active { transform: translateX(1px); }
-
-        .text-burn { text-shadow: 0 0 8px rgba(255,255,255,0.4); }
-        .glitch-text:hover { animation: text-shake 0.3s infinite; color: #00FFFF; }
-        @keyframes text-shake { 0%{transform:skewX(-15deg);} 5%{transform:skewX(15deg);} 10%{transform:skewX(-15deg);} 15%{transform:skewX(15deg);} 20%{transform:skewX(0deg);} 100%{transform:skewX(0deg);} }
-
-        ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:#050505;border-left:1px solid #000080} ::-webkit-scrollbar-thumb{background:#1E3E62} ::-webkit-scrollbar-thumb:hover{background:#9D00FF}
-      `}</style>
-
-      {/* --- VISUAL OVERLAYS --- */}
-      <div className="absolute inset-0 void-gradient z-0 pointer-events-none" />
-      <div className="absolute inset-0 digital-grain z-10 pointer-events-none opacity-50" />
-      <div className="absolute inset-0 crt-scanline z-50 opacity-50 mix-blend-overlay" />
+      {/* --- VISUAL LAYERS --- */}
+      <div className="absolute inset-0 grid-bg pointer-events-none z-0" />
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#050505]/50 to-[#050505] pointer-events-none z-0" />
+      <div className="absolute inset-0 scanline pointer-events-none z-50 opacity-10 pointer-events-none" />
 
       {/* --- HEADER --- */}
-      <header className="relative z-30 p-4 border-b border-[#000080] bg-[#050505]/90">
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-8 md:col-span-5 bento-module group p-3 flex flex-col justify-between h-20 cursor-default">
-            <span className="text-[9px] text-[#000080] font-bold group-hover:text-[#9D00FF] transition-colors">{useHash()}</span>
-            <div>
-              <span className="text-xs text-[#00FFFF] block mb-1">TARGET_PROTOCOL</span>
-              <div className="flex items-center justify-between">
-                <h1 className="text-[#FFFFFF] text-burn text-lg font-bold truncate tracking-widest">{roomId.slice(0,12)}</h1>
-                <button onClick={copyLink} className="text-[10px] text-[#00FFFF] hover:underline decoration-[#9D00FF] uppercase">[{copyStatus}]</button>
+      <header className="relative z-30 p-4 lg:p-6 pb-2">
+        <div className="grid grid-cols-12 gap-4 auto-rows-[80px]">
+          
+          {/* Main Info Module */}
+          <div className="col-span-12 md:col-span-8 relative group overflow-hidden bg-[#0a0f18]/80 backdrop-blur-md border border-[#1E3E62]/50 rounded-sm hover:border-[#00FFFF]/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.1)] transition-all duration-300 mt-[-8]">
+            {/* Decoration Corner */}
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#00FFFF] opacity-30 group-hover:opacity-100 transition-opacity" />
+            
+            <div className="h-full p-4 flex flex-col justify-between">
+              <div className="flex justify-between items-start">
+                <span className="text-[10px] text-[#00FFFF] uppercase tracking-widest font-bold">
+                  Target_Protocol_v2.0
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">
+                  {mountHash}
+                </span>
+              </div>
+              
+              <div className="flex items-end justify-between">
+                 <div>
+                    <h1 className="text-2xl text-red-800 hover:text-shadow-red-700 transition-colors duration-200 font-bold tracking-tighter truncate max-w-[200px] md:max-w-md">
+                      {/* Fixed: Improved contrast for the second half of the ID */}
+                      {roomId.slice(0, 8)}<span className="text-red-800 hover:text-shadow-red-700 transition-colors duration-200 ">{roomId.slice(8)}</span>
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-[10px] uppercase text-green-500">Live Connection</span>
+                    </div>
+                 </div>
+                 
+                 <button 
+                   onClick={copyLink}
+                   className="group/btn relative px-4  py-2.5 overflow-hidden bg-[#1E3E62]/20 border border-[#1E3E62] hover:border-[#00FFFF] hover:bg-[#00FFFF]/10 transition-all cursor-pointer"
+                 >
+                    {/* Fixed: Text color flow */}
+                    <span className="text-xs font-bold text-[#00FFFF] group-hover/btn:text-white uppercase tracking-wider relative z-10 transition-colors duration-200">
+                      {copyStatus === "ENCRYPT_LINK" ? "Copy Uplink" : "Link Secured"}
+                    </span>
+                 </button>
               </div>
             </div>
           </div>
-          <div className="col-span-4 md:col-span-3 bento-module p-3 flex flex-col justify-between h-20">
-            <span className="text-[9px] text-[#00FFFF] font-bold">TTL_MONITOR</span>
-            <div className="flex items-end gap-2">
-              <span className={`text-2xl font-bold leading-none ${timeRemaining && timeRemaining<60 ? 'text-[#9D00FF] animate-pulse':'text-[#FFFFFF] text-burn'}`}>
-                {timeRemaining!==null ? formatTimeRemaining(timeRemaining) : "--:--"}
-              </span>
-              <span className="text-[9px] text-[#ffffff] mb-1">SEC</span>
-            </div>
+
+          {/* TTL Monitor */}
+          <div className="col-span-6 md:col-span-2 relative bg-[#0a0f18]/80 backdrop-blur-md border border-[#1E3E62]/50 rounded-sm p-4 flex flex-col justify-between group hover:border-purple-500/50 transition-colors mt-[-8]">
+             <span className="text-[10px] text-purple-400 uppercase tracking-widest font-bold">
+               TTL_Timer
+             </span>
+             <div className="text-right">
+                <div className="text-3xl font-black text-white tabular-nums tracking-tighter leading-none">
+                  {timeRemaining !== null ? formatTimeRemaining(timeRemaining) : "--:--"}
+                </div>
+                <div className="text-[9px] text-slate-500 uppercase mt-1">
+                  Auto-Purge
+                </div>
+             </div>
+             <div className="absolute bottom-0 left-0 h-1 bg-purple-600 transition-all duration-1000" style={{ width: `${Math.min(((timeRemaining || 0) / 300) * 100, 100)}%`}} />
           </div>
-          <div className="col-span-12 md:col-span-4">
-            <button onClick={() => destroyRoom()} className="w-full h-20 bento-module bg-[#120124]/50 hover:bg-[#9D00FF]/10 text-red-500/70 hover:text-[#FFFFFF] flex items-center justify-center gap-3 transition-all group">
-              <span className="w-2 h-2 bg-red-500 rounded-none group-hover:animate-ping" />
-              <span className="tracking-[0.2em] text-xs font-bold glitch-text">INITIATE_PURGE</span>
+
+          {/* Destruct Button */}
+          <div className="col-span-6 md:col-span-2">
+            <button
+              onClick={() => destroyRoom()}
+              className="w-full h-full relative group bg-red-950/20 backdrop-blur-md border border-red-900/50 hover:bg-red-900/40 hover:border-red-500 transition-all duration-300 flex flex-col items-center justify-center gap-2 overflow-hidden rounded-sm"
+            >
+              <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,0,0,0.05)_10px,rgba(255,0,0,0.05)_20px)] opacity-50 mt-[-8]" />
+              <span className="text-red-500 group-hover:text-red-400 font-bold tracking-[0.2em] text-xs uppercase z-10">
+                Purge
+              </span>
+              <div className="w-16 h-px bg-red-800 group-hover:w-24 group-hover:bg-red-500 transition-all z-10" />
             </button>
           </div>
+
         </div>
       </header>
 
-      {/* --- MESSAGE STREAM --- */}
-      <div className="relative z-20 flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
-        {messages?.messages.length===0 && (
-          <div className="flex items-center justify-center h-full opacity-90">
-            <div className="text-center space-y-2">
-              <div className="w-16 h-16 border border-[#06ec57] mx-auto flex items-center justify-center text-[#ff0000] animate-spin">✣</div>
-              <p className="text-[#00FFFF] text-xs tracking-widest"><RedactedLabel text="SIGNAL_NOT_FOUND"/></p>
-            </div>
-          </div>
-        )}
-        {messages?.messages.map(msg => {
-          const isMe = msg.sender===username
-          const msgHash = useHash()
+      {/* --- MESSAGES --- */}
+      <div className="relative z-20 flex-1 overflow-y-auto p-4 space-y-6">
+        {messages?.messages.map((msg) => {
+          const isMe = msg.sender === username
+          const msgHash = getStableHash(msg.id)
+
           return (
-            <div key={msg.id} className={`flex w-full ${isMe?"justify-end":"justify-start"}`}>
-              <div className={`max-w-[85%] md:max-w-[60%] bento-module p-3 ${isMe?"border-r-4 border-r-[#00FFFF]":"border-l-4 border-l-[#9D00FF]"}`}>
-                <div className="flex items-center gap-4 mb-2 border-b border-[#000080]/30 pb-1">
-                  <span className="text-[8px] text-[#1E3E62] font-mono">{msgHash}</span>
-                  <div className="flex-1"/>
-                  <span className={`text-[10px] font-bold tracking-wider ${isMe?"text-[#00FFFF]":"text-[#9D00FF]"}`}>
-                    {isMe ? "OPERATOR" : msg.sender.toUpperCase()}
+            <div
+              key={msg.id}
+              className={`flex w-full group ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div 
+                className={`
+                  relative max-w-[85%] md:max-w-[60%] p-4 rounded-sm border backdrop-blur-md transition-all duration-300
+                  ${isMe 
+                    ? "bg-[#0a0f18]/90 border-[#00FFFF]/30 hover:border-[#00FFFF]/60 text-right" 
+                    : "bg-[#0e1520]/90 border-[#1E3E62]/30 hover:border-[#9D00FF]/50 text-left"
+                  }
+                `}
+              > 
+                {/* Decorative bits */}
+                <div className={`absolute top-0 w-3 h-3 border-t border-${isMe ? "r" : "l"} ${isMe ? "border-[#00FFFF]" : "border-[#9D00FF]"} opacity-50`} />
+                <div className={`absolute bottom-0 w-3 h-3 border-b border-${isMe ? "l" : "r"} ${isMe ? "border-[#00FFFF]" : "border-[#9D00FF]"} opacity-50`} />
+
+                <div className={`flex items-center gap-3 mb-2 text-[10px] font-mono tracking-wider ${isMe ? "flex-row-reverse" : "flex-row"}`}>
+                  <span className={`${isMe ? "text-[#00FFFF]" : "text-[#9D00FF]"} font-bold`}>
+                     {isMe ? "OPERATOR" : msg.sender.toUpperCase()}
                   </span>
+                  <span className="text-slate-600">::</span>
+                  <span className="text-slate-500 opacity-60">{msgHash}</span>
                 </div>
-                <p className="text-sm text-[#FFFFFF] leading-relaxed font-light opacity-90 break-all">{msg.text}</p>
-                <div className="mt-2 text-right">
-                  <span className="text-[8px] text-[#1E3E62]">T-MINUS {format(msg.timestamp,"HH:mm:ss")}</span>
+
+                <p className="text-sm md:text-base text-slate-200 leading-relaxed font-light break-words">
+                  {msg.text}
+                </p>
+
+                <div className={`mt-3 text-[9px] text-slate-500 font-mono flex items-center gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
+                  <span>T-{format(msg.timestamp, "HH:mm:ss")}</span>
+                  <div className={`w-1 h-1 rounded-full ${isMe ? "bg-[#00FFFF]" : "bg-[#9D00FF]"} opacity-50`} />
                 </div>
               </div>
             </div>
           )
         })}
+        {/* Invisible element for auto-scrolling */}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* --- INPUT DECK --- */}
-      <div className="relative z-30 p-4 bg-[#050505] border-t border-[#000080]">
-        <div className="bento-module flex items-stretch h-14 p-0 overflow-hidden focus-within:border-[#00FFFF] focus-within:shadow-[0_0_15px_rgba(0,255,255,0.15)]">
-          <div className="w-12 bg-[#120124] flex items-center justify-center border-r border-[#000080]">
-            <span className="text-[#9D00FF] text-xl animate-pulse">»</span>
-          </div>
-          <input
-            autoFocus
-            ref={inputRef}
-            type="text"
-            value={input}
-            onKeyDown={(e) => {
-              if (e.key==="Enter" && input.trim()) {
-                sendMessage({ text: input })
-                inputRef.current?.focus()
-              }
-            }}
-            placeholder="ENTER_ENCRYPTED_PAYLOAD..."
-            onChange={e => setInput(e.target.value)}
-            className="flex-1 bg-transparent border-none focus:ring-0 text-[#FFFFFF] placeholder-[#036ae0] px-4 text-sm caret-[#00FFFF]"
-            spellCheck={false}
-          />
-          <button
-            onClick={() => {sendMessage({text:input}); inputRef.current?.focus()}}
-            disabled={!input.trim() || isPending}
-            className="px-6 bg-[#000080]/20 hover:bg-[#9D00FF] text-[#00FFFF] hover:text-[#FFFFFF] text-xs font-bold tracking-[0.2em] transition-all disabled:opacity-50 disabled:cursor-not-allowed border-l border-[#000080]"
-          >
-            TX_DATA
-          </button>
+      {/* --- INPUT --- */}
+      <div className="relative z-30 p-4 border-t border-[#1E3E62]/30 bg-[#02040a]/90 backdrop-blur-xl">
+        <div className="max-w-full relative group">
+           {/* Animated Border Gradient */}
+           <div className="absolute -inset-0.5 bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] opacity-20 group-hover:opacity-50 blur transition duration-500" />
+           
+           <div className="relative flex items-stretch bg-black rounded-sm overflow-hidden border border-[#1E3E62]/50">
+             <div className="w-10 bg-[#0a0f18] flex items-center justify-center border-r border-[#1E3E62]/50">
+               <span className="text-[#00FFFF] animate-pulse">›</span>
+             </div>
+             
+             <input
+               ref={inputRef}
+               type="text"
+               value={input}
+               onKeyDown={(e) => {
+                 if (e.key === "Enter" && input.trim()) {
+                   sendMessage({ text: input })
+                   inputRef.current?.focus()
+                 }
+               }}
+               onChange={(e) => setInput(e.target.value)}
+               placeholder="ENTER_PAYLOAD..."
+               className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none font-mono"
+               spellCheck={false}
+               autoComplete="off"
+             />
+
+             <button
+               onClick={() => {
+                 sendMessage({ text: input })
+                 inputRef.current?.focus()
+               }}
+               disabled={!input.trim() || isPending}
+               className="px-6 bg-[#0a0f18] text-[#00FFFF] text-xs font-bold uppercase tracking-widest hover:bg-[#00FFFF] hover:text-black transition-all border-l border-[#1E3E62]/50 disabled:opacity-90 disabled:hover:bg-[#0a0f18] disabled:hover:text-[#00FFFF]"
+             >
+               {isPending ? "TX..." : "SEND"}
+             </button>
+           </div>
         </div>
-        <div className="flex justify-between mt-3 px-1 text-[8px] text-[#00FFFF] uppercase tracking-widest font-bold">
-          <span>UPLINK: <RedactedLabel text="UNSTABLE" chance={0.3}/></span>
-          <span>LATENCY: 42ms</span>
-          <span><RedactedLabel text="AUTHORIZED_ONLY" chance={0.1}/></span>
+        
+        {/* Footer info */}
+        <div className="flex justify-between items-center mt-2 px-1">
+           <span className="text-[8px] text-[#00FFFF] uppercase tracking-[0.2em]">Secure Connection Established</span>
+           <span className="text-[8px] text-[#00FFFF]  font-mono">LATENCY: &lt;12ms</span>
         </div>
       </div>
+
     </main>
   )
 }
