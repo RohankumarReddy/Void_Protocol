@@ -31,7 +31,7 @@ const Page = () => {
   const roomId = params.roomId as string
   const router = useRouter()
   const { username } = useUsername()
-
+  const [entermsg , setentermsg ] =useState(false) 
   const [input, setInput] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
   
@@ -166,7 +166,7 @@ const Page = () => {
                 <span className="text-[10px] text-[#00FFFF] uppercase tracking-widest font-bold">
                   Target_Protocol_v2.0
                 </span>
-                <span className="text-[10px] text-slate-500 font-mono">
+                <span className="text-[10px] text-[#00FFFF] opacity-70 font-mono">
                   {mountHash}
                 </span>
               </div>
@@ -300,7 +300,7 @@ const Page = () => {
                }}
                onChange={(e) => setInput(e.target.value)}
                placeholder="ENTER_PAYLOAD..."
-               className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none font-mono"
+               className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none font-mono"
                spellCheck={false}
                autoComplete="off"
              />
