@@ -166,16 +166,16 @@ const Page = () => {
                 <span className="text-[10px] text-[#00FFFF] uppercase tracking-widest font-bold">
                   Target_Protocol_v2.0
                 </span>
-                <span className="text-[10px] text-[#00FFFF] opacity-70 font-mono">
+                <span className="text-[10px] text-[#00FFFF]  font-mono">
                   {mountHash}
                 </span>
               </div>
               
               <div className="flex items-end justify-between">
                  <div>
-                    <h1 className="text-2xl text-red-800 hover:text-shadow-red-700 transition-colors duration-200 font-bold tracking-tighter truncate max-w-[200px] md:max-w-md">
+                    <h1 className="text-2xl text-red-500 hover:text-shadow-red-700 transition-colors duration-200 font-bold tracking-tighter truncate max-w-[200px] md:max-w-md">
                       {/* Fixed: Improved contrast for the second half of the ID */}
-                      {roomId.slice(0, 8)}<span className="text-red-800 hover:text-shadow-red-700 transition-colors duration-200 ">{roomId.slice(8)}</span>
+                      {roomId.slice(0, 8)}<span className="text-red-500 hover:text-shadow-red-700 transition-colors duration-200 ">{roomId.slice(8)}</span>
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -257,15 +257,15 @@ const Page = () => {
                   <span className={`${isMe ? "text-[#00FFFF]" : "text-[#9D00FF]"} font-bold`}>
                      {isMe ? "OPERATOR" : msg.sender.toUpperCase()}
                   </span>
-                  <span className="text-slate-600">::</span>
-                  <span className="text-slate-500 opacity-60">{msgHash}</span>
+                  <span className="text-slate-300">::</span>
+                  <span className="text-slate-400">{msgHash}</span>
                 </div>
 
                 <p className="text-sm md:text-base text-slate-200 leading-relaxed font-light break-words">
                   {msg.text}
                 </p>
 
-                <div className={`mt-3 text-[9px] text-slate-500 font-mono flex items-center gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
+                <div className={`mt-3 text-[9px] text-green-400 font-mono flex items-center gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
                   <span>T-{format(msg.timestamp, "HH:mm:ss")}</span>
                   <div className={`w-1 h-1 rounded-full ${isMe ? "bg-[#00FFFF]" : "bg-[#9D00FF]"} opacity-50`} />
                 </div>
