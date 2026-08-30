@@ -4,7 +4,7 @@ import { useUsername } from "@/hooks/use-username"
 import { client } from "@/lib/client"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import MatrixRain from "@/components/matrix-rain"
 // --- UTILS (LOGIC UNTOUCHED) ---
 const useHash = () => {
@@ -175,7 +175,11 @@ const TerminalPanel = ({ children }: { children: React.ReactNode }) => (
 
 // --- PAGE ---
 export default function Page() {
-  return <Lobby />
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Lobby />
+    </Suspense>
+  )
 }
 
 function Lobby() {
